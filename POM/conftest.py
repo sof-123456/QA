@@ -21,64 +21,20 @@ def driver():
     driver.quit()
 
 
-
-def scroll_until_element_visible(driver, by, value, max_scrolls=0):
-    for _ in range(max_scrolls):
-        try:
-            element = driver.find_element(by, value)
-            if element.is_displayed():
-                driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'nearest'});", element)
-                return element
-        except NoSuchElementException:
-            driver.execute_script("window.scrollBy(0, 500);")  
-            time.sleep(1)
-        except Exception as e:
-            print(f"Error: {e}")
-            raise e
-
-    raise Exception("Element not found after scrolling!")
-
-
-
-
-
+       
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
-def pytest_runtest_makereport(item, call):
+def pytest_runtest_makereport(item):
 
     outcome = yield
-    report = outcome.get_result()
+    rep = outcome.get_result()
+    print(rep.when)
+    setattr(item,'rep_'+rep.when,rep)
+    return rep
 
-    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    screenshot_dir = "screenshots"
-       
-    try:
-        os.makedirs(screenshot_dir, exist_ok=True) 
-    except Exception as e:
-        print(f"Failed to create folder: {e}")
-        raise e
-    
 
-    if report.when == "call" and report.failed and "driver" in item.funcargs:
-        driver = item.funcargs["driver"]
-        element_id = "submit" 
+@pytest.fixture(autouse=True)
+def make_screenshot(request,driver):
+    yield
+    if    request.node.rep_call.outcome=="failed":
 
-        try:
-            scroll_until_element_visible(driver, By.ID, element_id)
-            screenshot_path = os.path.join(screenshot_dir, f"{element_id}_found_{timestamp}.png")
-            driver.save_screenshot(screenshot_path)
-            print(f"Screenshot of element found: {screenshot_path}")
-      
-            with open(screenshot_path, "rb") as image_file:
-             allure.attach(image_file.read(), name=f"{element_id}_found", attachment_type=allure.attachment_type.PNG)
-
-        except Exception as e:
-            driver.execute_script("window.scrollTo(0, 0);")
-            screenshot_path = os.path.join(screenshot_dir, f"{element_id}_error_{timestamp}.png")
-            driver.save_screenshot(screenshot_path)
-
-            with open(screenshot_path, "rb") as image_file:
-                allure.attach(image_file.read(), name=f"{element_id}_error", attachment_type=allure.attachment_type.PNG)
-
-            
-
-       
+           allure.attach(driver.get_screenshot_as_png(), name=f"found", attachment_type=allure.attachment_type.PNG)

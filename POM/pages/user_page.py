@@ -3,6 +3,6 @@ from ..locators import LOG_OUT
 
 class UserPage(BasePage):
     def logout(self):
-        element=self.wait_for_elements(LOG_OUT)
+        element=self.find_element__(LOG_OUT)
         element.click()
         
