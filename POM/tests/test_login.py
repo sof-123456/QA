@@ -1,6 +1,6 @@
 import pytest
-from ..pages.Home import HomePage  
-from ..pages.login import LoginPage
+from ..pages.home_page import HomePage  
+from ..pages.login_function import LoginPage
 from ..pages.user_page import UserPage
 from ..locators import ERROR_MESSAGE, URL_LOGIN
 import allure

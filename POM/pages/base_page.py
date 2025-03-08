@@ -3,6 +3,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException
 import time
+import re
+
 
 
 class BasePage:
@@ -16,13 +18,13 @@ class BasePage:
 
     def  find_element__(self, locator):
         find_by=[By.ID, By.XPATH,By.CLASS_NAME,By.NAME]
-        for by in  find_by:
-            try :
-                return self.wait_for_elements((by,locator))
-            except:
-                continue     
+       
+        try :
+            return self.wait_for_elements((self.get_locator_type(locator),locator))
+        except:
 
-        raise NoSuchElementException(f"Element not found with locator '{locator}'  by {find_by}")      
+            raise NoSuchElementException(f"Element not found with locator '{locator}'  by {find_by}")      
+    
     def send_keys(self, locator, text):
         element = self.find_element__(locator )
         element.clear()
@@ -40,7 +42,13 @@ class BasePage:
     def get_current_url(self):
         return self.driver.current_url
     
-
+    def  get_locator_type(self, locator):
+        if re.match("//*", locator):
+            return By.XPATH
+        else :
+            return By.ID
+         
+        
 
     def scroll_until_element_visible(self,locator, max_scroll=10):
         for i in range(max_scroll):
