@@ -1,0 +1,1 @@
+blank_search_text="Please enter at least 3 letters into search field."
